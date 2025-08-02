@@ -1,6 +1,6 @@
 import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
-import theme from '../minimal.json';
 import { Edit, Canvas, Controls, Timeline } from '@shotstack/shotstack-studio';
+import theme from '../minimal.json';
 
 @Component({
   selector: 'app-root',
