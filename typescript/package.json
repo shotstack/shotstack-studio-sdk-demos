@@ -1,0 +1,20 @@
+{
+	"name": "vite-typescript-starter",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview",
+		"prettier": "prettier --write ."
+	},
+	"devDependencies": {
+		"prettier": "^3.6.2",
+		"typescript": "~5.7.2",
+		"vite": "^6.2.2"
+	},
+	"dependencies": {
+		"@shotstack/shotstack-studio": "^1.4.1"
+	}
+}
