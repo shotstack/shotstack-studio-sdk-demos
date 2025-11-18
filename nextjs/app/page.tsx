@@ -1,8 +1,6 @@
-'use client';
-
-import React, { useEffect, useRef } from 'react';
-import { Edit, Canvas, Controls, Timeline } from '@shotstack/shotstack-studio';
-import theme from './minimal.json';
+"use client";
+import React, { useEffect, useRef } from "react";
+import theme from "./minimal.json";
 
 export default function Home() {
   const canvasContainerRef = useRef(null);
@@ -11,8 +9,11 @@ export default function Home() {
     const initShotstack = async () => {
       try {
         // 1. Retrieve an edit from a template
+        const { Edit, Canvas, Controls, Timeline } = await import(
+          "@shotstack/shotstack-studio"
+        );
         const templateUrl =
-          'https://shotstack-assets.s3.amazonaws.com/templates/hello-world/hello.json';
+          "https://shotstack-assets.s3.amazonaws.com/templates/hello-world/hello.json";
         const response = await fetch(templateUrl);
         const template = await response.json();
 
@@ -31,7 +32,11 @@ export default function Home() {
         await edit.loadEdit(template);
 
         // 5. Add timeline
-        const timeline = new Timeline(edit, { width: template.output.size.width, height: 300 }, { theme });
+        const timeline = new Timeline(
+          edit,
+          { width: template.output.size.width, height: 300 },
+          { theme }
+        );
         await timeline.load();
 
         // 6. Add keyboard controls
@@ -43,17 +48,17 @@ export default function Home() {
 
         // Additional helpful information for the demo
         console.log(
-          'Demo loaded successfully! Try the following keyboard controls:'
+          "Demo loaded successfully! Try the following keyboard controls:"
         );
-        console.log('- Space: Play/Pause');
-        console.log('- J: Stop');
-        console.log('- K: Pause');
-        console.log('- L: Play');
-        console.log('- Left/Right Arrow: Seek');
-        console.log('- Shift+Left/Right: Seek faster');
-        console.log('- Comma/Period: Step frame by frame');
+        console.log("- Space: Play/Pause");
+        console.log("- J: Stop");
+        console.log("- K: Pause");
+        console.log("- L: Play");
+        console.log("- Left/Right Arrow: Seek");
+        console.log("- Shift+Left/Right: Seek faster");
+        console.log("- Comma/Period: Step frame by frame");
       } catch (error) {
-        console.error('Failed to initialize Shotstack:', error);
+        console.error("Failed to initialize Shotstack:", error);
       }
     };
 
