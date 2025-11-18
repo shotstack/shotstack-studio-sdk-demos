@@ -11,6 +11,7 @@ Example implementations of the [Shotstack Studio SDK](https://github.com/shotsta
 - **Next.js** - Next.js implementation
 
 Each demo showcases:
+
 - Loading and displaying video templates
 - Timeline controls for editing
 - Keyboard shortcuts for playback
