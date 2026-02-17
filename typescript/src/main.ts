@@ -1,7 +1,6 @@
-import theme from "./minimal.json";
-import { Edit, Canvas, Controls, Timeline } from "@shotstack/shotstack-studio";
+import { Edit, Canvas, Controls, Timeline, UIController } from "@shotstack/shotstack-studio";
 
-const TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/hello-world/hello.json";
+const TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
 
 async function main() {
 	try {
@@ -11,15 +10,18 @@ async function main() {
 		}
 		const template = await response.json();
 
-		const edit = new Edit(template.output.size, template.timeline.background);
+		const edit = new Edit(template);
+
+		const canvas = new Canvas(edit);
+		UIController.create(edit, canvas);
+		await canvas.load();
 		await edit.load();
 
-		const canvas = new Canvas(template.output.size, edit);
-		await canvas.load();
-
-		await edit.loadEdit(template);
-
-		const timeline = new Timeline(edit, { width: 1280, height: 300 }, { theme });
+		const timelineContainer = document.querySelector<HTMLElement>("[data-shotstack-timeline]");
+		if (!timelineContainer) {
+			throw new Error("Timeline container not found");
+		}
+		const timeline = new Timeline(edit, timelineContainer);
 		await timeline.load();
 
 		const controls = new Controls(edit);
