@@ -1,13 +1,10 @@
-import React, { useEffect, useRef } from "react";
-import theme from "./minimal.json";
-import { Edit, Canvas, Controls, Timeline } from "@shotstack/shotstack-studio";
+import React, { useEffect } from "react";
+import { Edit, Canvas, Controls, Timeline, UIController } from "@shotstack/shotstack-studio";
 import "./App.css";
 
-const TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/hello-world/hello.json";
+const TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
 
 function App() {
-	const canvasContainerRef = useRef(null);
-
 	useEffect(() => {
 		const initShotstack = async () => {
 			try {
@@ -17,27 +14,84 @@ function App() {
 				}
 				const template = await response.json();
 
-				const edit = new Edit(template.output.size, template.timeline.background);
+				const edit = new Edit(template);
+
+				const canvas = new Canvas(edit);
+				const ui = UIController.create(edit, canvas);
+				await canvas.load();
 				await edit.load();
 
-				const canvas = new Canvas(template.output.size, edit);
-				await canvas.load();
+				ui.registerButton({
+					id: "text",
+					icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3H13"/><path d="M8 3V13"/><path d="M5 13H11"/></svg>`,
+					tooltip: "Add Text"
+				});
 
-				await edit.loadEdit(template);
+				ui.registerButton({
+					id: "shape",
+					icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="1.5"/></svg>`,
+					tooltip: "Add Shape"
+				});
 
-				const timeline = new Timeline(edit, { width: 1280, height: 300 }, { theme });
+				ui.on("button:text", ({ position }) => {
+					edit.addTrack(0, {
+						clips: [{
+							asset: {
+								type: "rich-text",
+								text: "Title",
+								font: { family: "Work Sans", size: 72, weight: 600, color: "#ffffff", opacity: 1 },
+								align: { horizontal: "center", vertical: "middle" }
+							},
+							start: position,
+							length: 5,
+							width: 500,
+							height: 200
+						}]
+					});
+				});
+
+				ui.on("button:shape", ({ position }) => {
+					edit.addTrack(0, {
+						clips: [{
+							asset: {
+								type: "svg",
+								src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>',
+								opacity: 1
+							},
+							start: position,
+							length: 10,
+							width: 100,
+							height: 100
+						}]
+					});
+				});
+
+				const timelineContainer = document.querySelector("[data-shotstack-timeline]");
+				const timeline = new Timeline(edit, timelineContainer);
 				await timeline.load();
 
 				const controls = new Controls(edit);
 				await controls.load();
 
+				edit.events.on("clip:selected", (data) => {
+					console.log("Clip selected:", data);
+				});
+
+				edit.events.on("clip:updated", (data) => {
+					console.log("Clip updated:", data);
+				});
+
 				edit.play();
 
 				console.log("Demo loaded! Keyboard controls:");
-				console.log("- Space: Play/Pause");
-				console.log("- J/K/L: Stop/Pause/Play");
-				console.log("- Arrow keys: Seek (hold Shift for faster)");
-				console.log("- Comma/Period: Step frame by frame");
+				console.log("Playback: Space (play/pause), J (stop), K (pause), L (play)");
+				console.log("Seek: Arrow Left/Right (hold Shift for 10x), Comma/Period (frame step)");
+				console.log("Navigate: Home/End (timeline start/end), Shift+Home/End (clip start/end)");
+				console.log("Clip: Arrow keys (move selected clip), Delete/Backspace (delete)");
+				console.log("Edit: Cmd/Ctrl+Z (undo), Cmd/Ctrl+Shift+Z (redo)");
+				console.log("Copy: Cmd/Ctrl+C (copy clip), Cmd/Ctrl+V (paste clip)");
+				console.log("Toolbar: Backtick (toggle asset/clip mode)");
+				console.log("Debug: I (log edit JSON to console)");
 			} catch (error) {
 				console.error("Failed to load demo:", error);
 			}
@@ -48,8 +102,8 @@ function App() {
 
 	return (
 		<div className="App">
-			<div data-shotstack-studio className="canvas-container" ref={canvasContainerRef}></div>
-			<div data-shotstack-timeline></div>
+			<div data-shotstack-studio className="c-shotstack-studio"></div>
+			<div data-shotstack-timeline className="c-shotstack-timeline"></div>
 		</div>
 	);
 }
