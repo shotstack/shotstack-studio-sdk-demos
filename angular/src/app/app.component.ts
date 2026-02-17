@@ -1,37 +1,31 @@
-import { Component, AfterViewInit, ViewChild, ElementRef } from "@angular/core";
-import { Edit, Canvas, Controls, Timeline } from "@shotstack/shotstack-studio";
-import theme from "../minimal.json";
+import { Component, AfterViewInit } from "@angular/core";
+import { Edit, Canvas, Controls, Timeline, UIController } from "@shotstack/shotstack-studio";
 
 @Component({
 	selector: "app-root",
 	template: `
-		<div class="app">
-			<div data-shotstack-studio #canvasContainer class="canvas-container"></div>
-			<div data-shotstack-timeline class="timeline-container"></div>
-		</div>
+		<div data-shotstack-studio class="c-shotstack-studio"></div>
+		<div data-shotstack-timeline class="c-shotstack-timeline"></div>
 	`,
 	styles: [
 		`
-			.app {
-				display: flex;
-				flex-direction: column;
-				height: 100vh;
+			:host {
+				display: block;
+				height: 100%;
 			}
-			.canvas-container {
-				flex: 1;
-				background-color: #000;
+			.c-shotstack-studio {
+				width: 100%;
+				height: calc(100vh - 300px);
+				min-height: 400px;
 			}
-			.timeline-container {
+			.c-shotstack-timeline {
 				height: 300px;
-				background-color: #1a1a1a;
 			}
 		`
 	]
 })
 export class App implements AfterViewInit {
-	@ViewChild("canvasContainer") canvasContainerRef!: ElementRef;
-
-	private readonly TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/hello-world/hello.json";
+	private readonly TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
 
 	ngAfterViewInit(): void {
 		this.initShotstack();
@@ -45,27 +39,87 @@ export class App implements AfterViewInit {
 			}
 			const template = await response.json();
 
-			const edit = new Edit(template.output.size, template.timeline.background);
+			const edit = new Edit(template);
+
+			const canvas = new Canvas(edit);
+			const ui = UIController.create(edit, canvas);
+			await canvas.load();
 			await edit.load();
 
-			const canvas = new Canvas(template.output.size, edit);
-			await canvas.load();
+			ui.registerButton({
+				id: "text",
+				icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3H13"/><path d="M8 3V13"/><path d="M5 13H11"/></svg>`,
+				tooltip: "Add Text"
+			});
 
-			await edit.loadEdit(template);
+			ui.registerButton({
+				id: "shape",
+				icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="1.5"/></svg>`,
+				tooltip: "Add Shape"
+			});
 
-			const timeline = new Timeline(edit, { width: 1280, height: 300 }, { theme });
+			ui.on("button:text", ({ position }: { position: number }) => {
+				edit.addTrack(0, {
+					clips: [
+						{
+							asset: {
+								type: "rich-text",
+								text: "Title",
+								font: { family: "Work Sans", size: 72, weight: 600, color: "#ffffff", opacity: 1 },
+								align: { horizontal: "center", vertical: "middle" }
+							},
+							start: position,
+							length: 5,
+							width: 500,
+							height: 200
+						}
+					]
+				});
+			});
+
+			ui.on("button:shape", ({ position }: { position: number }) => {
+				edit.addTrack(0, {
+					clips: [
+						{
+							asset: {
+								type: "svg",
+								src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>',
+								opacity: 1
+							},
+							start: position,
+							length: 10,
+							width: 100,
+							height: 100
+						}
+					]
+				});
+			});
+
+			const timelineContainer = document.querySelector<HTMLElement>("[data-shotstack-timeline]");
+			if (!timelineContainer) {
+				throw new Error("Timeline container not found");
+			}
+			const timeline = new Timeline(edit, timelineContainer);
 			await timeline.load();
 
 			const controls = new Controls(edit);
 			await controls.load();
 
+			edit.events.on("clip:selected", (data: unknown) => {
+				console.log("Clip selected:", data);
+			});
+
 			edit.play();
 
 			console.log("Demo loaded! Keyboard controls:");
-			console.log("- Space: Play/Pause");
-			console.log("- J/K/L: Stop/Pause/Play");
-			console.log("- Arrow keys: Seek (hold Shift for faster)");
-			console.log("- Comma/Period: Step frame by frame");
+			console.log("Playback: Space (play/pause), J (stop), K (pause), L (play)");
+			console.log("Seek: Arrow Left/Right (hold Shift for 10x), Comma/Period (frame step)");
+			console.log("Navigate: Home/End (timeline start/end), Shift+Home/End (clip start/end)");
+			console.log("Clip: Arrow keys (move selected clip), Delete/Backspace (delete)");
+			console.log("Edit: Cmd/Ctrl+Z (undo), Cmd/Ctrl+Shift+Z (redo)");
+			console.log("Copy: Cmd/Ctrl+C (copy clip), Cmd/Ctrl+V (paste clip)");
+			console.log("Toolbar: Backtick (toggle asset/clip mode)");
+			console.log("Debug: I (log edit JSON to console)");
 		} catch (error) {
 			console.error("Failed to load demo:", error);
 		}
