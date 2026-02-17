@@ -1,52 +1,103 @@
 "use client";
-import React, { useEffect, useRef } from "react";
-import theme from "./minimal.json";
+import { useEffect } from "react";
+
+const TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
 
 export default function Home() {
-	const canvasContainerRef = useRef(null);
-
 	useEffect(() => {
 		const initShotstack = async () => {
 			try {
-				// 1. Retrieve an edit from a template
-				const { Edit, Canvas, Controls, Timeline } = await import("@shotstack/shotstack-studio");
-				const templateUrl = "https://shotstack-assets.s3.amazonaws.com/templates/hello-world/hello.json";
-				const response = await fetch(templateUrl);
+				const { Edit, Canvas, Controls, Timeline, UIController } = await import("@shotstack/shotstack-studio");
+
+				const response = await fetch(TEMPLATE_URL);
+				if (!response.ok) {
+					throw new Error(`Failed to load template: ${response.status}`);
+				}
 				const template = await response.json();
 
-				// 2. Initialize the edit with dimensions and background color
-				const edit = new Edit(template.output.size, template.timeline.background);
+				const edit = new Edit(template);
+
+				const canvas = new Canvas(edit);
+				const ui = UIController.create(edit, canvas);
+				await canvas.load();
 				await edit.load();
 
-				// 3. Create a canvas to display the edit
-				const canvas = new Canvas(template.output.size, edit);
-				await canvas.load(); // Renders to [data-shotstack-studio] element
+				ui.registerButton({
+					id: "text",
+					icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3H13"/><path d="M8 3V13"/><path d="M5 13H11"/></svg>`,
+					tooltip: "Add Text"
+				});
 
-				// 4. Load the template
-				await edit.loadEdit(template);
+				ui.registerButton({
+					id: "shape",
+					icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="1.5"/></svg>`,
+					tooltip: "Add Shape"
+				});
 
-				// 5. Add timeline
-				const timeline = new Timeline(edit, { width: template.output.size.width, height: 300 }, { theme });
+				ui.on("button:text", ({ position }: { position: number }) => {
+					edit.addTrack(0, {
+						clips: [{
+							asset: {
+								type: "rich-text",
+								text: "Title",
+								font: { family: "Work Sans", size: 72, weight: 600, color: "#ffffff", opacity: 1 },
+								align: { horizontal: "center", vertical: "middle" }
+							},
+							start: position,
+							length: 5,
+							width: 500,
+							height: 200
+						}]
+					});
+				});
+
+				ui.on("button:shape", ({ position }: { position: number }) => {
+					edit.addTrack(0, {
+						clips: [{
+							asset: {
+								type: "svg",
+								src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>',
+								opacity: 1
+							},
+							start: position,
+							length: 10,
+							width: 100,
+							height: 100
+						}]
+					});
+				});
+
+				const timelineContainer = document.querySelector<HTMLElement>("[data-shotstack-timeline]");
+				if (!timelineContainer) {
+					throw new Error("Timeline container not found");
+				}
+				const timeline = new Timeline(edit, timelineContainer);
 				await timeline.load();
 
-				// 6. Add keyboard controls
 				const controls = new Controls(edit);
 				await controls.load();
 
-				// 7. Control playback with playback methods
-				await edit.play();
+				edit.events.on("clip:selected", (data: unknown) => {
+					console.log("Clip selected:", data);
+				});
 
-				// Additional helpful information for the demo
-				console.log("Demo loaded successfully! Try the following keyboard controls:");
-				console.log("- Space: Play/Pause");
-				console.log("- J: Stop");
-				console.log("- K: Pause");
-				console.log("- L: Play");
-				console.log("- Left/Right Arrow: Seek");
-				console.log("- Shift+Left/Right: Seek faster");
-				console.log("- Comma/Period: Step frame by frame");
+				edit.events.on("clip:updated", (data: unknown) => {
+					console.log("Clip updated:", data);
+				});
+
+				edit.play();
+
+				console.log("Demo loaded! Keyboard controls:");
+				console.log("Playback: Space (play/pause), J (stop), K (pause), L (play)");
+				console.log("Seek: Arrow Left/Right (hold Shift for 10x), Comma/Period (frame step)");
+				console.log("Navigate: Home/End (timeline start/end), Shift+Home/End (clip start/end)");
+				console.log("Clip: Arrow keys (move selected clip), Delete/Backspace (delete)");
+				console.log("Edit: Cmd/Ctrl+Z (undo), Cmd/Ctrl+Shift+Z (redo)");
+				console.log("Copy: Cmd/Ctrl+C (copy clip), Cmd/Ctrl+V (paste clip)");
+				console.log("Toolbar: Backtick (toggle asset/clip mode)");
+				console.log("Debug: I (log edit JSON to console)");
 			} catch (error) {
-				console.error("Failed to initialize Shotstack:", error);
+				console.error("Failed to load demo:", error);
 			}
 		};
 
@@ -54,13 +105,9 @@ export default function Home() {
 	}, []);
 
 	return (
-		<div className="min-h-screen flex flex-col bg-black">
-			<div className="flex-1 flex items-center justify-center">
-				<div data-shotstack-studio className="w-full h-full max-w-screen-xl" ref={canvasContainerRef}></div>
-			</div>
-			<div className="flex justify-center">
-				<div data-shotstack-timeline className="h-[300px] w-full max-w-screen-xl"></div>
-			</div>
-		</div>
+		<>
+			<div data-shotstack-studio className="c-shotstack-studio"></div>
+			<div data-shotstack-timeline className="c-shotstack-timeline"></div>
+		</>
 	);
 }
