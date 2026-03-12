@@ -1,113 +1,263 @@
 "use client";
-import { useEffect } from "react";
 
-const TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Edit, Canvas, Controls, Timeline } from "@shotstack/shotstack-studio";
 
-export default function Home() {
-	useEffect(() => {
-		const initShotstack = async () => {
-			try {
-				const { Edit, Canvas, Controls, Timeline, UIController } = await import("@shotstack/shotstack-studio");
+const BUILTIN_OPEN_SANS_URL = "https://templates.shotstack.io/basic/asset/font/OpenSans.ttf";
+const GSTATIC_OPEN_SANS_URL = "https://fonts.gstatic.com/s/opensans/v44/mem8YaGs126MiZpBA-U1UpcaXcl0Aw.ttf";
 
-				const response = await fetch(TEMPLATE_URL);
-				if (!response.ok) {
-					throw new Error(`Failed to load template: ${response.status}`);
-				}
-				const template = await response.json();
+type ReproPayload = {
+	timeline: {
+		background: string;
+		fonts?: Array<{ src: string }>;
+		tracks: Array<{
+			clips: Array<{
+				asset: {
+					type: "rich-text";
+					text: string;
+					font: {
+						family: string;
+						weight: number;
+						size: number;
+						color: string;
+						opacity: number;
+					};
+					align: {
+						horizontal: "center";
+						vertical: "middle";
+					};
+				};
+				start: number;
+				length: number;
+				width: number;
+				height: number;
+				offset: {
+					x: number;
+					y: number;
+				};
+			}>;
+		}>;
+	};
+	output: {
+		size: {
+			width: number;
+			height: number;
+		};
+		format: "mp4";
+	};
+};
 
-				const edit = new Edit(template);
+type ReproVariant = {
+	id: string;
+	label: string;
+	description: string;
+	payload: ReproPayload;
+};
 
-				const canvas = new Canvas(edit);
-				const ui = UIController.create(edit, canvas);
-				await canvas.load();
-				await edit.load();
-
-				ui.registerButton({
-					id: "text",
-					icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3H13"/><path d="M8 3V13"/><path d="M5 13H11"/></svg>`,
-					tooltip: "Add Text"
-				});
-
-				ui.registerButton({
-					id: "shape",
-					icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="1.5"/></svg>`,
-					tooltip: "Add Shape"
-				});
-
-				ui.on("button:text", ({ position }: { position: number }) => {
-					edit.addTrack(0, {
-						clips: [{
-							asset: {
-								type: "rich-text",
-								text: "Title",
-								font: { family: "Work Sans", size: 72, weight: 600, color: "#ffffff", opacity: 1 },
-								align: { horizontal: "center", vertical: "middle" }
-							},
-							start: position,
-							length: 5,
-							width: 500,
-							height: 200
-						}]
-					});
-				});
-
-				ui.on("button:shape", ({ position }: { position: number }) => {
-					edit.addTrack(0, {
-						clips: [{
-							asset: {
-								type: "svg",
-								src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>',
+const createApiPayload = (fonts?: Array<{ src: string }>): ReproPayload => ({
+	timeline: {
+		background: "#ffffff",
+		...(fonts ? { fonts } : {}),
+		tracks: [
+			{
+				clips: [
+					{
+						asset: {
+							type: "rich-text",
+							text: "Open Sans 900 repro",
+							font: {
+								family: "Open Sans",
+								weight: 900,
+								size: 64,
+								color: "#111111",
 								opacity: 1
 							},
-							start: position,
-							length: 10,
-							width: 100,
-							height: 100
-						}]
-					});
-				});
-
-				const timelineContainer = document.querySelector<HTMLElement>("[data-shotstack-timeline]");
-				if (!timelineContainer) {
-					throw new Error("Timeline container not found");
-				}
-				const timeline = new Timeline(edit, timelineContainer);
-				await timeline.load();
-
-				const controls = new Controls(edit);
-				await controls.load();
-
-				edit.events.on("clip:selected", (data: unknown) => {
-					console.log("Clip selected:", data);
-				});
-
-				edit.events.on("clip:updated", (data: unknown) => {
-					console.log("Clip updated:", data);
-				});
-
-				edit.play();
-
-				console.log("Demo loaded! Keyboard controls:");
-				console.log("Playback: Space (play/pause), J (stop), K (pause), L (play)");
-				console.log("Seek: Arrow Left/Right (hold Shift for 10x), Comma/Period (frame step)");
-				console.log("Navigate: Home/End (timeline start/end), Shift+Home/End (clip start/end)");
-				console.log("Clip: Arrow keys (move selected clip), Delete/Backspace (delete)");
-				console.log("Edit: Cmd/Ctrl+Z (undo), Cmd/Ctrl+Shift+Z (redo)");
-				console.log("Copy: Cmd/Ctrl+C (copy clip), Cmd/Ctrl+V (paste clip)");
-				console.log("Toolbar: Backtick (toggle asset/clip mode)");
-				console.log("Debug: I (log edit JSON to console)");
-			} catch (error) {
-				console.error("Failed to load demo:", error);
+							align: {
+								horizontal: "center",
+								vertical: "middle"
+							}
+						},
+						start: 0,
+						length: 3,
+						width: 900,
+						height: 220,
+						offset: {
+							x: 0,
+							y: 0
+						}
+					}
+				]
 			}
-		};
+		]
+	},
+	output: {
+		size: {
+			width: 1920,
+			height: 1080
+		},
+		format: "mp4"
+	}
+});
 
-		initShotstack();
+const REPRO_VARIANTS: ReproVariant[] = [
+	{
+		id: "no-timeline-fonts",
+		label: "No timeline.fonts",
+		description: "Open Sans 900 with only built-in resolution.",
+		payload: createApiPayload()
+	},
+	{
+		id: "built-in-font-url",
+		label: "timeline.fonts -> built-in CDN",
+		description: "Open Sans 900 with timeline.fonts using the built-in CDN font URL.",
+		payload: createApiPayload([{ src: BUILTIN_OPEN_SANS_URL }])
+	},
+	{
+		id: "gstatic-font-url",
+		label: "timeline.fonts -> gstatic",
+		description: "Open Sans 900 with timeline.fonts using the Google-hosted font URL from the issue.",
+		payload: createApiPayload([{ src: GSTATIC_OPEN_SANS_URL }])
+	}
+];
+
+const formatError = (err: unknown): { message: string; stack?: string } => {
+	if (err instanceof Error) {
+		let message = err.message;
+		const issues = (err as { issues?: unknown[] }).issues;
+		if (Array.isArray(issues) && issues.length > 0) {
+			message += ` ${JSON.stringify(issues)}`;
+		}
+		return { message, stack: err.stack };
+	}
+
+	return { message: String(err) };
+};
+
+export default function VideoPreviewPage() {
+	const [status, setStatus] = useState<"running" | "checks-failed" | "preview-loading" | "preview-ready" | "preview-error">("running");
+	const studioRef = useRef<HTMLDivElement>(null);
+	const timelineRef = useRef<HTMLDivElement>(null);
+	const cleanupRef = useRef<(() => void) | null>(null);
+
+	const loadPreview = useCallback(async () => {
+		cleanupRef.current?.();
+		setStatus("running");
+		let hadFailure = false;
+
+		for (const variant of REPRO_VARIANTS) {
+			let edit: Edit | null = null;
+			console.groupCollapsed(`[issue-76] ${variant.label}`);
+			console.log("payload", variant.payload);
+
+			try {
+				const apiPayload = variant.payload;
+				const editConfig = {
+					timeline: apiPayload.timeline,
+					output: apiPayload.output,
+				};
+
+				edit = new Edit(editConfig as any);
+				await edit.load();
+
+				console.info(`[issue-76:${variant.id}] edit.load() succeeded`);
+			} catch (err) {
+				hadFailure = true;
+				const { message } = formatError(err);
+				console.error(`[repro:${variant.id}] edit.load failed`, err);
+				console.error(`[issue-76:${variant.id}] ${message}`);
+			} finally {
+				console.groupEnd();
+				try {
+					(edit as any)?.dispose?.();
+				} catch (disposeError) {
+					console.warn(`[repro:${variant.id}] failed to dispose edit`, disposeError);
+				}
+			}
+		}
+
+		if (hadFailure) {
+			setStatus("checks-failed");
+			return;
+		}
+
+		setStatus("preview-loading");
+
+		try {
+			const apiPayload = REPRO_VARIANTS[0].payload;
+			const editConfig = {
+				timeline: apiPayload.timeline,
+				output: apiPayload.output,
+			};
+
+			const edit = new Edit(editConfig as any);
+			await edit.load();
+
+			const canvas = new Canvas(edit);
+			await canvas.load();
+
+			const timelineContainer = timelineRef.current;
+			if (!timelineContainer) {
+				throw new Error("Timeline container not found.");
+			}
+			const timeline = new Timeline(edit, timelineContainer, { resizable: true });
+			await timeline.load();
+
+			const controls = new Controls(edit);
+			await controls.load();
+
+			cleanupRef.current = () => {
+				try {
+					(timeline as any)?.dispose?.();
+					(canvas as any)?.dispose?.();
+					(controls as any)?.dispose?.();
+					(edit as any)?.dispose?.();
+				} catch (_) {}
+					cleanupRef.current = null;
+				};
+
+			console.info("[issue-76] All edit.load() checks passed. Loading fuller preview with the no-timeline.fonts variant.");
+			setStatus("preview-ready");
+		} catch (err) {
+			const { message, stack } = formatError(err);
+			console.error("[preview] full preview failed after edit.load() checks passed", err);
+			console.error("[issue-76] Preview failure message:", message);
+			if (stack) console.error(stack);
+			setStatus("preview-error");
+		}
 	}, []);
 
+	useEffect(() => {
+		loadPreview();
+		return () => {
+			cleanupRef.current?.();
+		};
+	}, [loadPreview]);
+
 	return (
-		<>
-			<div data-shotstack-studio className="c-shotstack-studio"></div>
-			<div data-shotstack-timeline className="c-shotstack-timeline"></div>
-		</>
+		<div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+			<header style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: "1px solid #e5e7eb" }}>
+				<span style={{ fontSize: 14, color: "#6b7280" }}>Issue #76 repro</span>
+				<span style={{ fontSize: 14, color: "#d1d5db" }}>|</span>
+				<span style={{ fontSize: 14, fontWeight: 500 }}>Open Sans 900 / Next.js / published 2.4.0</span>
+			</header>
+
+			<div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
+				{(status === "running" || status === "preview-loading") && (
+					<div style={{ position: "absolute", inset: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.75)" }}>
+						<p style={{ margin: 0, fontSize: 14, color: "#6b7280" }}>Loading preview…</p>
+					</div>
+				)}
+				<div
+					ref={studioRef}
+					data-shotstack-studio
+					style={{ flex: 1, minHeight: 0, width: "100%" }}
+				/>
+				<div
+					ref={timelineRef}
+					data-shotstack-timeline
+					style={{ height: 300, borderTop: "1px solid #e5e7eb", overflow: "hidden", flexShrink: 0 }}
+				/>
+			</div>
+		</div>
 	);
 }
