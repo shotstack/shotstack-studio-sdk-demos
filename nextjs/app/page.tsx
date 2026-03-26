@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 
 const TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
 
@@ -7,7 +7,7 @@ export default function Home() {
 	useEffect(() => {
 		const initShotstack = async () => {
 			try {
-				const { Edit, Canvas, Controls, Timeline, UIController } = await import("@shotstack/shotstack-studio");
+				const { Edit, Canvas, Controls, Timeline } = await import("@shotstack/shotstack-studio");
 
 				const response = await fetch(TEMPLATE_URL);
 				if (!response.ok) {
@@ -16,61 +16,12 @@ export default function Home() {
 				const template = await response.json();
 
 				const edit = new Edit(template);
-
 				const canvas = new Canvas(edit);
-				const ui = UIController.create(edit, canvas);
+
 				await canvas.load();
 				await edit.load();
 
-				ui.registerButton({
-					id: "text",
-					icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3H13"/><path d="M8 3V13"/><path d="M5 13H11"/></svg>`,
-					tooltip: "Add Text"
-				});
-
-				ui.registerButton({
-					id: "shape",
-					icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="1.5"/></svg>`,
-					tooltip: "Add Shape"
-				});
-
-				ui.on("button:text", ({ position }: { position: number }) => {
-					edit.addTrack(0, {
-						clips: [{
-							asset: {
-								type: "rich-text",
-								text: "Title",
-								font: { family: "Work Sans", size: 72, weight: 600, color: "#ffffff", opacity: 1 },
-								align: { horizontal: "center", vertical: "middle" }
-							},
-							start: position,
-							length: 5,
-							width: 500,
-							height: 200
-						}]
-					});
-				});
-
-				ui.on("button:shape", ({ position }: { position: number }) => {
-					edit.addTrack(0, {
-						clips: [{
-							asset: {
-								type: "svg",
-								src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>',
-								opacity: 1
-							},
-							start: position,
-							length: 10,
-							width: 100,
-							height: 100
-						}]
-					});
-				});
-
-				const timelineContainer = document.querySelector<HTMLElement>("[data-shotstack-timeline]");
-				if (!timelineContainer) {
-					throw new Error("Timeline container not found");
-				}
+				const timelineContainer = document.querySelector("[data-shotstack-timeline]") as HTMLElement;
 				const timeline = new Timeline(edit, timelineContainer);
 				await timeline.load();
 
@@ -79,10 +30,6 @@ export default function Home() {
 
 				edit.events.on("clip:selected", (data: unknown) => {
 					console.log("Clip selected:", data);
-				});
-
-				edit.events.on("clip:updated", (data: unknown) => {
-					console.log("Clip updated:", data);
 				});
 
 				edit.play();

@@ -1,11 +1,13 @@
-import { Component, AfterViewInit } from "@angular/core";
-import { Edit, Canvas, Controls, Timeline, UIController } from "@shotstack/shotstack-studio";
+import { Component, AfterViewInit, ViewChild, ElementRef } from "@angular/core";
+import { Edit, Canvas, Controls, Timeline } from "@shotstack/shotstack-studio";
 
 @Component({
 	selector: "app-root",
 	template: `
-		<div data-shotstack-studio class="c-shotstack-studio"></div>
-		<div data-shotstack-timeline class="c-shotstack-timeline"></div>
+		<div class="app">
+			<div data-shotstack-studio #canvasContainer class="canvas-container"></div>
+			<div data-shotstack-timeline #timelineContainer class="timeline-container"></div>
+		</div>
 	`,
 	styles: [
 		`
@@ -25,6 +27,9 @@ import { Edit, Canvas, Controls, Timeline, UIController } from "@shotstack/shots
 	]
 })
 export class App implements AfterViewInit {
+	@ViewChild("canvasContainer") canvasContainerRef!: ElementRef;
+	@ViewChild("timelineContainer") timelineContainerRef!: ElementRef;
+
 	private readonly TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
 
 	ngAfterViewInit(): void {
@@ -40,66 +45,12 @@ export class App implements AfterViewInit {
 			const template = await response.json();
 
 			const edit = new Edit(template);
-
 			const canvas = new Canvas(edit);
-			const ui = UIController.create(edit, canvas);
+
 			await canvas.load();
 			await edit.load();
 
-			ui.registerButton({
-				id: "text",
-				icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3H13"/><path d="M8 3V13"/><path d="M5 13H11"/></svg>`,
-				tooltip: "Add Text"
-			});
-
-			ui.registerButton({
-				id: "shape",
-				icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="1.5"/></svg>`,
-				tooltip: "Add Shape"
-			});
-
-			ui.on("button:text", ({ position }: { position: number }) => {
-				edit.addTrack(0, {
-					clips: [
-						{
-							asset: {
-								type: "rich-text",
-								text: "Title",
-								font: { family: "Work Sans", size: 72, weight: 600, color: "#ffffff", opacity: 1 },
-								align: { horizontal: "center", vertical: "middle" }
-							},
-							start: position,
-							length: 5,
-							width: 500,
-							height: 200
-						}
-					]
-				});
-			});
-
-			ui.on("button:shape", ({ position }: { position: number }) => {
-				edit.addTrack(0, {
-					clips: [
-						{
-							asset: {
-								type: "svg",
-								src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>',
-								opacity: 1
-							},
-							start: position,
-							length: 10,
-							width: 100,
-							height: 100
-						}
-					]
-				});
-			});
-
-			const timelineContainer = document.querySelector<HTMLElement>("[data-shotstack-timeline]");
-			if (!timelineContainer) {
-				throw new Error("Timeline container not found");
-			}
-			const timeline = new Timeline(edit, timelineContainer);
+			const timeline = new Timeline(edit, this.timelineContainerRef.nativeElement);
 			await timeline.load();
 
 			const controls = new Controls(edit);

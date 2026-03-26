@@ -9,15 +9,20 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
-		"@shotstack/shotstack-studio": "2.0.0-rc.6",
-		"@types/node": "20.6.2",
-		"@types/react": "18.2.22",
-		"@types/react-dom": "18.2.7",
-		"eslint": "8.49.0",
-		"eslint-config-next": "13.5.1",
-		"next": "13.5.1",
-		"react": "18.2.0",
-		"react-dom": "18.2.0",
-		"typescript": "5.2.2"
+		"@shotstack/shotstack-studio": "^2.4.3",
+		"next": "^15.3.2",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "^22.15.3",
+		"@types/react": "^19.0.10",
+		"@types/react-dom": "^19.0.4",
+		"autoprefixer": "^10.4.21",
+		"eslint": "^9.26.0",
+		"eslint-config-next": "^15.3.2",
+		"postcss": "^8.5.3",
+		"tailwindcss": "^3.4.17",
+		"typescript": "^5.7.2"
 	}
 }
