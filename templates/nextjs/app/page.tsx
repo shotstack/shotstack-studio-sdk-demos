@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import template from "./template.json";
+import type { EditConfig } from "@shotstack/shotstack-studio";
 
 export default function Home() {
 	useEffect(() => {
@@ -8,7 +9,7 @@ export default function Home() {
 			try {
 				const { Edit, Canvas, Controls, Timeline, UIController } = await import("@shotstack/shotstack-studio");
 
-				const edit = new Edit(template);
+				const edit = new Edit(template as EditConfig);
 
 				const canvas = new Canvas(edit);
 				const ui = UIController.create(edit, canvas);
@@ -49,8 +50,7 @@ export default function Home() {
 						clips: [{
 							asset: {
 								type: "svg",
-								src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>',
-								opacity: 1
+								src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>'
 							},
 							start: position,
 							length: 10,
