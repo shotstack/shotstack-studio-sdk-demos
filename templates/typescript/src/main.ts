@@ -1,15 +1,8 @@
 import { Edit, Canvas, Controls, Timeline, UIController } from "@shotstack/shotstack-studio";
-
-const TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
+import template from "./template.json";
 
 async function main() {
 	try {
-		const response = await fetch(TEMPLATE_URL);
-		if (!response.ok) {
-			throw new Error(`Failed to load template: ${response.status}`);
-		}
-		const template = await response.json();
-
 		const edit = new Edit(template);
 
 		const canvas = new Canvas(edit);

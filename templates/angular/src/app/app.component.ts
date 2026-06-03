@@ -1,5 +1,6 @@
 import { Component, AfterViewInit } from "@angular/core";
 import { Edit, Canvas, Controls, Timeline, UIController } from "@shotstack/shotstack-studio";
+import template from "../template.json";
 
 @Component({
 	selector: "app-root",
@@ -25,20 +26,12 @@ import { Edit, Canvas, Controls, Timeline, UIController } from "@shotstack/shots
 	]
 })
 export class App implements AfterViewInit {
-	private readonly TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
-
 	ngAfterViewInit(): void {
 		this.initShotstack();
 	}
 
 	async initShotstack(): Promise<void> {
 		try {
-			const response = await fetch(this.TEMPLATE_URL);
-			if (!response.ok) {
-				throw new Error(`Failed to load template: ${response.status}`);
-			}
-			const template = await response.json();
-
 			const edit = new Edit(template);
 
 			const canvas = new Canvas(edit);
