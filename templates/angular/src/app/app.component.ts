@@ -1,4 +1,4 @@
-import { Component, AfterViewInit } from "@angular/core";
+import { Component, AfterViewInit, OnDestroy } from "@angular/core";
 import { Edit, Canvas, Controls, Timeline, UIController, type EditConfig } from "@shotstack/shotstack-studio";
 import template from "../template.json";
 
@@ -25,9 +25,19 @@ import template from "../template.json";
 		`
 	]
 })
-export class App implements AfterViewInit {
+export class App implements AfterViewInit, OnDestroy {
+	private disposed = false;
+	private readonly disposables: { dispose(): void }[] = [];
+
 	ngAfterViewInit(): void {
 		this.initShotstack();
+	}
+
+	ngOnDestroy(): void {
+		this.disposed = true;
+		for (const d of this.disposables) {
+			d.dispose();
+		}
 	}
 
 	async initShotstack(): Promise<void> {
@@ -35,9 +45,12 @@ export class App implements AfterViewInit {
 			const edit = new Edit(template as EditConfig);
 
 			const canvas = new Canvas(edit);
+			this.disposables.push(canvas);
 			const ui = UIController.create(edit, canvas);
+			this.disposables.push(ui);
 			await canvas.load();
 			await edit.load();
+			if (this.disposed) return;
 
 			ui.registerButton({
 				id: "text",
@@ -92,28 +105,17 @@ export class App implements AfterViewInit {
 				throw new Error("Timeline container not found");
 			}
 			const timeline = new Timeline(edit, timelineContainer);
+			this.disposables.push(timeline);
 			await timeline.load();
+			if (this.disposed) return;
 
 			const controls = new Controls(edit);
 			await controls.load();
 
-			edit.events.on("clip:selected", (data: unknown) => {
-				console.log("Clip selected:", data);
-			});
-
 			edit.play();
-
-			console.log("Demo loaded! Keyboard controls:");
-			console.log("Playback: Space (play/pause), J (stop), K (pause), L (play)");
-			console.log("Seek: Arrow Left/Right (hold Shift for 10x), Comma/Period (frame step)");
-			console.log("Navigate: Home/End (timeline start/end), Shift+Home/End (clip start/end)");
-			console.log("Clip: Arrow keys (move selected clip), Delete/Backspace (delete)");
-			console.log("Edit: Cmd/Ctrl+Z (undo), Cmd/Ctrl+Shift+Z (redo)");
-			console.log("Copy: Cmd/Ctrl+C (copy clip), Cmd/Ctrl+V (paste clip)");
-			console.log("Toolbar: Backtick (toggle asset/clip mode)");
-			console.log("Debug: I (log edit JSON to console)");
+			console.log("Shotstack Studio loaded — edit src/template.json or use the toolbar.");
 		} catch (error) {
-			console.error("Failed to load demo:", error);
+			console.error("Failed to load editor:", error);
 		}
 	}
 }

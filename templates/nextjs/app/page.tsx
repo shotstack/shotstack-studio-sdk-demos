@@ -5,6 +5,9 @@ import type { EditConfig } from "@shotstack/shotstack-studio";
 
 export default function Home() {
 	useEffect(() => {
+		let disposed = false;
+		const disposables: { dispose(): void }[] = [];
+
 		const initShotstack = async () => {
 			try {
 				const { Edit, Canvas, Controls, Timeline, UIController } = await import("@shotstack/shotstack-studio");
@@ -12,9 +15,12 @@ export default function Home() {
 				const edit = new Edit(template as EditConfig);
 
 				const canvas = new Canvas(edit);
+				disposables.push(canvas);
 				const ui = UIController.create(edit, canvas);
+				disposables.push(ui);
 				await canvas.load();
 				await edit.load();
+				if (disposed) return;
 
 				ui.registerButton({
 					id: "text",
@@ -65,36 +71,28 @@ export default function Home() {
 					throw new Error("Timeline container not found");
 				}
 				const timeline = new Timeline(edit, timelineContainer);
+				disposables.push(timeline);
 				await timeline.load();
+				if (disposed) return;
 
 				const controls = new Controls(edit);
 				await controls.load();
 
-				edit.events.on("clip:selected", (data: unknown) => {
-					console.log("Clip selected:", data);
-				});
-
-				edit.events.on("clip:updated", (data: unknown) => {
-					console.log("Clip updated:", data);
-				});
-
 				edit.play();
-
-				console.log("Demo loaded! Keyboard controls:");
-				console.log("Playback: Space (play/pause), J (stop), K (pause), L (play)");
-				console.log("Seek: Arrow Left/Right (hold Shift for 10x), Comma/Period (frame step)");
-				console.log("Navigate: Home/End (timeline start/end), Shift+Home/End (clip start/end)");
-				console.log("Clip: Arrow keys (move selected clip), Delete/Backspace (delete)");
-				console.log("Edit: Cmd/Ctrl+Z (undo), Cmd/Ctrl+Shift+Z (redo)");
-				console.log("Copy: Cmd/Ctrl+C (copy clip), Cmd/Ctrl+V (paste clip)");
-				console.log("Toolbar: Backtick (toggle asset/clip mode)");
-				console.log("Debug: I (log edit JSON to console)");
+				console.log("Shotstack Studio loaded — edit app/template.json or use the toolbar.");
 			} catch (error) {
-				console.error("Failed to load demo:", error);
+				console.error("Failed to load editor:", error);
 			}
 		};
 
 		initShotstack();
+
+		return () => {
+			disposed = true;
+			for (const d of disposables) {
+				d.dispose();
+			}
+		};
 	}, []);
 
 	return (
