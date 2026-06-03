@@ -1,41 +1,59 @@
-# Shotstack Studio SDK Demos
+# create-video-editor
 
-Example implementations of the [Shotstack Studio SDK](https://github.com/shotstack/shotstack-studio-sdk) across popular web frameworks.
+Scaffold a [Shotstack Studio SDK](https://github.com/shotstack/shotstack-studio-sdk) video editor in seconds.
 
-## Demos
+```sh
+npm create video-editor@latest
+# or
+npx create-video-editor
+```
 
-- **TypeScript** - Vanilla TypeScript implementation
-- **React** - React implementation
-- **Vue** - Vue implementation
-- **Angular** - Angular implementation
-- **Next.js** - Next.js implementation
+You'll be asked for a project name and a framework, then:
 
-Each demo showcases:
-
-- Loading and displaying video templates
-- Timeline controls for editing
-- Keyboard shortcuts for playback
-- Custom theming
-
-## Getting Started
-
-Navigate to any demo directory and install dependencies:
-
-```bash
+```sh
+cd my-video-editor
 npm install
+npm run dev
 ```
 
-Then start the development server:
+`npm run dev` opens a **live, editable video editor in your browser** — the Studio SDK embedded in your own app, pre-loaded with a starter Edit. It's your codebase to customise and ship.
 
-```bash
-npm run dev   # For TypeScript, React, Vue, and Next.js
-npm start     # For Angular
+## Frameworks
+
+| Choose | Stack |
+|---|---|
+| `react` | React 19 + Vite |
+| `vue` | Vue 3 + Vite |
+| `nextjs` | Next.js |
+| `angular` | Angular |
+| `typescript` | Vanilla TypeScript + Vite |
+
+Non-interactive:
+
+```sh
+npx create-video-editor my-editor --template react --yes
 ```
 
-Then open the URL shown in your terminal.
+## What you get
 
-## Learn More
+- An app embedding [`@shotstack/shotstack-studio`](https://www.npmjs.com/package/@shotstack/shotstack-studio) — canvas, timeline, and controls.
+- A starter **Edit** in `src/template.json` (the same JSON the [Shotstack Edit API](https://shotstack.io/docs/guide/) renders). Edit it in code or in the editor.
+- A clean path to production: preview locally, then render a final MP4 from the cloud with the CLI — `npx shotstack render src/template.json --watch`.
 
-- [Shotstack Studio SDK GitHub](https://github.com/shotstack/shotstack-studio-sdk)
-- [Shotstack Edit API Documentation](https://shotstack.io/docs/guide/)
-- [Shotstack API Reference](https://shotstack.io/docs/api/)
+## How this fits the rest of Shotstack
+
+The **Edit JSON** is the shared format across the whole platform — the embedded editor here, the `shotstack` CLI, the render API, and the Shotstack agent skill all speak it. A video you design in the scaffolded editor renders identically through the API.
+
+## Templates / demos
+
+The framework starters live in [`templates/`](templates/) and double as standalone Studio SDK demos — loading and displaying Edits, timeline controls, keyboard shortcuts, and custom theming. Browse them directly, or scaffold a fresh copy with the command above.
+
+## Learn more
+
+- [Shotstack Studio SDK](https://github.com/shotstack/shotstack-studio-sdk)
+- [Shotstack Edit API documentation](https://shotstack.io/docs/guide/)
+- [Shotstack API reference](https://shotstack.io/docs/api/)
+
+## Licence
+
+MIT.

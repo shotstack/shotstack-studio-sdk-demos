@@ -1,0 +1,30 @@
+{
+  "name": "create-video-editor",
+  "version": "0.1.0",
+  "description": "Scaffold a Shotstack Studio SDK video editor in seconds.",
+  "type": "module",
+  "bin": {
+    "create-video-editor": "bin/index.mjs"
+  },
+  "files": [
+    "bin",
+    "templates"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "shotstack",
+    "video",
+    "video-editor",
+    "studio-sdk",
+    "scaffold",
+    "create"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shotstack/shotstack-studio-sdk-demos.git"
+  },
+  "homepage": "https://shotstack.io"
+}

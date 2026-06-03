@@ -1,19 +1,15 @@
 import React, { useEffect } from "react";
 import { Edit, Canvas, Controls, Timeline, UIController } from "@shotstack/shotstack-studio";
+import template from "./template.json";
 import "./App.css";
 
-const TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
+// The starter Edit lives in src/template.json — the same JSON the Shotstack
+// Edit API renders. Change it here or edit it live in the canvas/timeline below.
 
 function App() {
 	useEffect(() => {
 		const initShotstack = async () => {
 			try {
-				const response = await fetch(TEMPLATE_URL);
-				if (!response.ok) {
-					throw new Error(`Failed to load template: ${response.status}`);
-				}
-				const template = await response.json();
-
 				const edit = new Edit(template);
 
 				const canvas = new Canvas(edit);
@@ -83,7 +79,7 @@ function App() {
 
 				edit.play();
 
-				console.log("Demo loaded! Keyboard controls:");
+				console.log("Editor loaded! Keyboard controls:");
 				console.log("Playback: Space (play/pause), J (stop), K (pause), L (play)");
 				console.log("Seek: Arrow Left/Right (hold Shift for 10x), Comma/Period (frame step)");
 				console.log("Navigate: Home/End (timeline start/end), Shift+Home/End (clip start/end)");
@@ -93,7 +89,7 @@ function App() {
 				console.log("Toolbar: Backtick (toggle asset/clip mode)");
 				console.log("Debug: I (log edit JSON to console)");
 			} catch (error) {
-				console.error("Failed to load demo:", error);
+				console.error("Failed to load editor:", error);
 			}
 		};
 
