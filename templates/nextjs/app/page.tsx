@@ -1,26 +1,26 @@
 "use client";
 import { useEffect } from "react";
-
-const TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
+import template from "./template.json";
+import type { EditConfig } from "@shotstack/shotstack-studio";
 
 export default function Home() {
 	useEffect(() => {
+		let disposed = false;
+		const disposables: { dispose(): void }[] = [];
+
 		const initShotstack = async () => {
 			try {
 				const { Edit, Canvas, Controls, Timeline, UIController } = await import("@shotstack/shotstack-studio");
 
-				const response = await fetch(TEMPLATE_URL);
-				if (!response.ok) {
-					throw new Error(`Failed to load template: ${response.status}`);
-				}
-				const template = await response.json();
-
-				const edit = new Edit(template);
+				const edit = new Edit(template as EditConfig);
 
 				const canvas = new Canvas(edit);
+				disposables.push(canvas);
 				const ui = UIController.create(edit, canvas);
+				disposables.push(ui);
 				await canvas.load();
 				await edit.load();
+				if (disposed) return;
 
 				ui.registerButton({
 					id: "text",
@@ -56,8 +56,7 @@ export default function Home() {
 						clips: [{
 							asset: {
 								type: "svg",
-								src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>',
-								opacity: 1
+								src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>'
 							},
 							start: position,
 							length: 10,
@@ -72,36 +71,28 @@ export default function Home() {
 					throw new Error("Timeline container not found");
 				}
 				const timeline = new Timeline(edit, timelineContainer);
+				disposables.push(timeline);
 				await timeline.load();
+				if (disposed) return;
 
 				const controls = new Controls(edit);
 				await controls.load();
 
-				edit.events.on("clip:selected", (data: unknown) => {
-					console.log("Clip selected:", data);
-				});
-
-				edit.events.on("clip:updated", (data: unknown) => {
-					console.log("Clip updated:", data);
-				});
-
 				edit.play();
-
-				console.log("Demo loaded! Keyboard controls:");
-				console.log("Playback: Space (play/pause), J (stop), K (pause), L (play)");
-				console.log("Seek: Arrow Left/Right (hold Shift for 10x), Comma/Period (frame step)");
-				console.log("Navigate: Home/End (timeline start/end), Shift+Home/End (clip start/end)");
-				console.log("Clip: Arrow keys (move selected clip), Delete/Backspace (delete)");
-				console.log("Edit: Cmd/Ctrl+Z (undo), Cmd/Ctrl+Shift+Z (redo)");
-				console.log("Copy: Cmd/Ctrl+C (copy clip), Cmd/Ctrl+V (paste clip)");
-				console.log("Toolbar: Backtick (toggle asset/clip mode)");
-				console.log("Debug: I (log edit JSON to console)");
+				console.log("Shotstack Studio loaded — edit app/template.json or use the toolbar.");
 			} catch (error) {
-				console.error("Failed to load demo:", error);
+				console.error("Failed to load editor:", error);
 			}
 		};
 
 		initShotstack();
+
+		return () => {
+			disposed = true;
+			for (const d of disposables) {
+				d.dispose();
+			}
+		};
 	}, []);
 
 	return (

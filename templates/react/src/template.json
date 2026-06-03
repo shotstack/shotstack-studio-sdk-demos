@@ -1,0 +1,84 @@
+{
+  "timeline": {
+    "background": "#08080A",
+    "tracks": [
+      {
+        "clips": [
+          {
+            "asset": {
+              "type": "rich-text",
+              "text": "NEW SEASON",
+              "font": { "family": "Work Sans", "size": 40, "weight": "600", "color": "#D96B82" },
+              "style": { "letterSpacing": 8, "textTransform": "uppercase" },
+              "align": { "horizontal": "center", "vertical": "middle" },
+              "animation": { "preset": "shift", "duration": 0.6, "style": "word", "direction": "up" }
+            },
+            "start": 0.4,
+            "length": 5.6,
+            "width": 1000,
+            "height": 100,
+            "offset": { "x": 0, "y": 0.16 }
+          }
+        ]
+      },
+      {
+        "clips": [
+          {
+            "asset": {
+              "type": "rich-text",
+              "text": "AURORA",
+              "font": { "family": "Work Sans", "size": 220, "weight": "700", "color": "#F2F2F4" },
+              "style": { "letterSpacing": -2, "lineHeight": 0.9, "textTransform": "uppercase" },
+              "align": { "horizontal": "center", "vertical": "middle" },
+              "animation": { "preset": "ascend", "duration": 0.6, "direction": "up" }
+            },
+            "start": 0.6,
+            "length": 5.4,
+            "width": 1300,
+            "height": 320,
+            "offset": { "x": 0, "y": 0 }
+          }
+        ]
+      },
+      {
+        "clips": [
+          {
+            "asset": {
+              "type": "rich-text",
+              "text": "GET YOURS",
+              "font": { "family": "Work Sans", "size": 56, "weight": "600", "color": "#F2F2F4" },
+              "style": { "letterSpacing": 4, "textTransform": "uppercase" },
+              "align": { "horizontal": "center", "vertical": "middle" },
+              "animation": { "preset": "shift", "duration": 0.6, "style": "word", "direction": "up" }
+            },
+            "start": 1.0,
+            "length": 5.0,
+            "width": 1000,
+            "height": 140,
+            "offset": { "x": 0, "y": -0.22 }
+          }
+        ]
+      },
+      {
+        "clips": [
+          {
+            "asset": {
+              "type": "image",
+              "src": "https://shotstack-assets.s3.amazonaws.com/images/woods1.jpg"
+            },
+            "start": 0,
+            "length": 6,
+            "fit": "cover",
+            "opacity": 0.45,
+            "effect": "zoomInSlow"
+          }
+        ]
+      }
+    ]
+  },
+  "output": {
+    "format": "mp4",
+    "fps": 30,
+    "size": { "width": 1920, "height": 1080 }
+  }
+}

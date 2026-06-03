@@ -1,19 +1,19 @@
-import { Edit, Canvas, Controls, Timeline, UIController } from "@shotstack/shotstack-studio";
+import { Edit, Canvas, Controls, Timeline, UIController, type EditConfig } from "@shotstack/shotstack-studio";
+import template from "./template.json";
 
-const TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
+// The starter Edit lives in src/template.json — the same JSON the Shotstack
+// Edit API renders. Change it here or edit it live in the canvas/timeline below.
+
+const disposables: { dispose(): void }[] = [];
 
 async function main() {
 	try {
-		const response = await fetch(TEMPLATE_URL);
-		if (!response.ok) {
-			throw new Error(`Failed to load template: ${response.status}`);
-		}
-		const template = await response.json();
-
-		const edit = new Edit(template);
+		const edit = new Edit(template as EditConfig);
 
 		const canvas = new Canvas(edit);
+		disposables.push(canvas);
 		const ui = UIController.create(edit, canvas);
+		disposables.push(ui);
 		await canvas.load();
 		await edit.load();
 
@@ -51,8 +51,7 @@ async function main() {
 				clips: [{
 					asset: {
 						type: "svg",
-						src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>',
-						opacity: 1
+						src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>'
 					},
 					start: position,
 					length: 10,
@@ -67,33 +66,26 @@ async function main() {
 			throw new Error("Timeline container not found");
 		}
 		const timeline = new Timeline(edit, timelineContainer);
+		disposables.push(timeline);
 		await timeline.load();
 
 		const controls = new Controls(edit);
 		await controls.load();
 
-		edit.events.on("clip:selected", (data) => {
-			console.log("Clip selected:", data);
-		});
-
-		edit.events.on("clip:updated", (data) => {
-			console.log("Clip updated:", data);
-		});
-
 		edit.play();
-
-		console.log("Demo loaded! Keyboard controls:");
-		console.log("Playback: Space (play/pause), J (stop), K (pause), L (play)");
-		console.log("Seek: Arrow Left/Right (hold Shift for 10x), Comma/Period (frame step)");
-		console.log("Navigate: Home/End (timeline start/end), Shift+Home/End (clip start/end)");
-		console.log("Clip: Arrow keys (move selected clip), Delete/Backspace (delete)");
-		console.log("Edit: Cmd/Ctrl+Z (undo), Cmd/Ctrl+Shift+Z (redo)");
-		console.log("Copy: Cmd/Ctrl+C (copy clip), Cmd/Ctrl+V (paste clip)");
-		console.log("Toolbar: Backtick (toggle asset/clip mode)");
-		console.log("Debug: I (log edit JSON to console)");
+		console.log("Shotstack Studio loaded — edit src/template.json or use the toolbar.");
 	} catch (error) {
-		console.error("Failed to load demo:", error);
+		console.error("Failed to load editor:", error);
 	}
 }
 
 main();
+
+// Dispose the editor on Vite hot-reload so HMR doesn't stack editor instances.
+if (import.meta.hot) {
+	import.meta.hot.dispose(() => {
+		for (const d of disposables) {
+			d.dispose();
+		}
+	});
+}

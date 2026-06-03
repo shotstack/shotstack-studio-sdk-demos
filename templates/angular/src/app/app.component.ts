@@ -1,5 +1,6 @@
-import { Component, AfterViewInit } from "@angular/core";
-import { Edit, Canvas, Controls, Timeline, UIController } from "@shotstack/shotstack-studio";
+import { Component, AfterViewInit, OnDestroy } from "@angular/core";
+import { Edit, Canvas, Controls, Timeline, UIController, type EditConfig } from "@shotstack/shotstack-studio";
+import template from "../template.json";
 
 @Component({
 	selector: "app-root",
@@ -24,27 +25,32 @@ import { Edit, Canvas, Controls, Timeline, UIController } from "@shotstack/shots
 		`
 	]
 })
-export class App implements AfterViewInit {
-	private readonly TEMPLATE_URL = "https://shotstack-assets.s3.amazonaws.com/templates/sales-event-promotion/template.json";
+export class App implements AfterViewInit, OnDestroy {
+	private disposed = false;
+	private readonly disposables: { dispose(): void }[] = [];
 
 	ngAfterViewInit(): void {
 		this.initShotstack();
 	}
 
+	ngOnDestroy(): void {
+		this.disposed = true;
+		for (const d of this.disposables) {
+			d.dispose();
+		}
+	}
+
 	async initShotstack(): Promise<void> {
 		try {
-			const response = await fetch(this.TEMPLATE_URL);
-			if (!response.ok) {
-				throw new Error(`Failed to load template: ${response.status}`);
-			}
-			const template = await response.json();
-
-			const edit = new Edit(template);
+			const edit = new Edit(template as EditConfig);
 
 			const canvas = new Canvas(edit);
+			this.disposables.push(canvas);
 			const ui = UIController.create(edit, canvas);
+			this.disposables.push(ui);
 			await canvas.load();
 			await edit.load();
+			if (this.disposed) return;
 
 			ui.registerButton({
 				id: "text",
@@ -83,8 +89,7 @@ export class App implements AfterViewInit {
 						{
 							asset: {
 								type: "svg",
-								src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>',
-								opacity: 1
+								src: '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="100" height="100" rx="10" ry="10" fill="#00FFFF"/></svg>'
 							},
 							start: position,
 							length: 10,
@@ -100,28 +105,17 @@ export class App implements AfterViewInit {
 				throw new Error("Timeline container not found");
 			}
 			const timeline = new Timeline(edit, timelineContainer);
+			this.disposables.push(timeline);
 			await timeline.load();
+			if (this.disposed) return;
 
 			const controls = new Controls(edit);
 			await controls.load();
 
-			edit.events.on("clip:selected", (data: unknown) => {
-				console.log("Clip selected:", data);
-			});
-
 			edit.play();
-
-			console.log("Demo loaded! Keyboard controls:");
-			console.log("Playback: Space (play/pause), J (stop), K (pause), L (play)");
-			console.log("Seek: Arrow Left/Right (hold Shift for 10x), Comma/Period (frame step)");
-			console.log("Navigate: Home/End (timeline start/end), Shift+Home/End (clip start/end)");
-			console.log("Clip: Arrow keys (move selected clip), Delete/Backspace (delete)");
-			console.log("Edit: Cmd/Ctrl+Z (undo), Cmd/Ctrl+Shift+Z (redo)");
-			console.log("Copy: Cmd/Ctrl+C (copy clip), Cmd/Ctrl+V (paste clip)");
-			console.log("Toolbar: Backtick (toggle asset/clip mode)");
-			console.log("Debug: I (log edit JSON to console)");
+			console.log("Shotstack Studio loaded — edit src/template.json or use the toolbar.");
 		} catch (error) {
-			console.error("Failed to load demo:", error);
+			console.error("Failed to load editor:", error);
 		}
 	}
 }
