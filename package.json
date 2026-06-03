@@ -3,6 +3,9 @@
   "version": "0.1.1",
   "description": "Scaffold a Shotstack Studio SDK video editor in seconds.",
   "type": "module",
+  "scripts": {
+    "prepack": "node scripts/clean.mjs"
+  },
   "bin": {
     "create-video-editor": "bin/index.mjs"
   },
