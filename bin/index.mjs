@@ -7,7 +7,7 @@
 // with a starter Edit JSON.
 
 import { readdir, mkdir, cp, readFile, writeFile, access } from "node:fs/promises";
-import { join, resolve, basename, dirname } from "node:path";
+import { join, resolve, basename, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { stdin, stdout, cwd, exit, argv } from "node:process";
 import { createInterface } from "node:readline/promises";
@@ -113,11 +113,19 @@ async function main() {
     exit(1);
   }
 
-  // 3. Copy the template (skip node_modules/dist/build/.git)
+  // 3. Copy the template (skip node_modules/dist/build/.git).
+  // Filter on the path RELATIVE to the template root: the absolute source path
+  // contains "node_modules" when the package runs via npx (it lives under
+  // ~/.npm/_npx/.../node_modules/create-video-editor/), which would otherwise
+  // exclude the entire template tree.
+  const source = join(TEMPLATES_DIR, template);
   await mkdir(target, { recursive: true });
-  await cp(join(TEMPLATES_DIR, template), target, {
+  await cp(source, target, {
     recursive: true,
-    filter: (src) => !/[\\/](node_modules|dist|build|\.git|\.next)([\\/]|$)/.test(src),
+    filter: (src) => {
+      const rel = relative(source, src);
+      return !/(^|[\\/])(node_modules|dist|build|\.git|\.next)([\\/]|$)/.test(rel);
+    },
   });
 
   // 4. Personalise package.json
