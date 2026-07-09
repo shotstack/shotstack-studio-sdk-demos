@@ -8,30 +8,46 @@ npm create video-editor@latest
 npx create-video-editor
 ```
 
-You'll be asked for a project name and a framework, then:
+You'll be asked for a project name and a framework. The CLI then scaffolds the
+app, installs dependencies, starts the dev server, prints the localhost URL and
+opens it in your browser when possible.
 
 ```sh
-cd my-video-editor
-npm install
-npm run dev
+npx create-video-editor my-video-editor
+
+# Opens something like:
+# http://localhost:5173
 ```
 
-`npm run dev` opens a **live, editable video editor in your browser** — the Studio SDK embedded in your own app, pre-loaded with a starter Edit. It's your codebase to customise and ship.
+The local URL opens a **live, editable video editor in your browser** — the Studio SDK embedded in your own app, pre-loaded with a starter Edit. It's your codebase to customise and ship.
 
 ## Frameworks
 
+Vanilla TypeScript is the default if you press enter at the framework prompt or
+run with `--yes` and no `--template`.
+
 | Choose | Stack |
 |---|---|
+| `typescript` | Vanilla TypeScript + Vite |
 | `react` | React 19 + Vite |
 | `vue` | Vue 3 + Vite |
 | `nextjs` | Next.js |
 | `angular` | Angular |
-| `typescript` | Vanilla TypeScript + Vite |
 
 Non-interactive:
 
 ```sh
+npx create-video-editor my-editor --yes
+```
+
+Useful flags:
+
+```sh
 npx create-video-editor my-editor --template react --yes
+npx create-video-editor my-editor --no-open
+npx create-video-editor my-editor --no-start
+npx create-video-editor my-editor --no-install
+npx create-video-editor my-editor --package-manager pnpm --port 5174
 ```
 
 ## What you get

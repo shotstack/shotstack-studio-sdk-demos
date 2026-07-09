@@ -9,7 +9,7 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
-		"@shotstack/shotstack-studio": "2.11.2",
+		"@shotstack/shotstack-studio": "2.13.1",
 		"vue": "^3.5.13"
 	},
 	"devDependencies": {

@@ -14,7 +14,7 @@
 		"@angular/forms": "^19.0.6",
 		"@angular/platform-browser": "^19.0.6",
 		"@angular/router": "^19.0.6",
-		"@shotstack/shotstack-studio": "2.11.2",
+		"@shotstack/shotstack-studio": "2.13.1",
 		"rxjs": "^7.8.1",
 		"tslib": "^2.5.0",
 		"zone.js": "~0.15.0"
