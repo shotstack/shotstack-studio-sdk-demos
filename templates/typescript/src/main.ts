@@ -5,6 +5,7 @@ import template from "./template.json";
 // Edit API renders. Change it here or edit it live in the canvas/timeline below.
 
 const disposables: { dispose(): void }[] = [];
+let currentEdit: Edit | null = null;
 
 async function main() {
 	try {
@@ -16,6 +17,7 @@ async function main() {
 		disposables.push(ui);
 		await canvas.load();
 		await edit.load();
+		currentEdit = edit;
 
 		ui.registerButton({
 			id: "text",
@@ -80,6 +82,7 @@ async function main() {
 }
 
 main();
+wireDemoToolbar();
 
 // Dispose the editor on Vite hot-reload so HMR doesn't stack editor instances.
 if (import.meta.hot) {
@@ -87,5 +90,32 @@ if (import.meta.hot) {
 		for (const d of disposables) {
 			d.dispose();
 		}
+		currentEdit = null;
 	});
+}
+
+function wireDemoToolbar() {
+	document.querySelector<HTMLButtonElement>("[data-copy-json]")?.addEventListener("click", async () => {
+		try {
+			if (!currentEdit) throw new Error("Editor not ready yet.");
+			await navigator.clipboard.writeText(JSON.stringify(currentEdit.getEdit(), null, 2));
+			toast("JSON copied", "success");
+		} catch (error) {
+			toast(error instanceof Error ? error.message : "Could not copy JSON.", "error");
+		}
+	});
+}
+
+let toastTimer: number | undefined;
+function toast(message: string, kind: "success" | "error") {
+	let el = document.querySelector<HTMLElement>(".toast");
+	if (!el) {
+		el = document.createElement("div");
+		el.className = "toast";
+		document.body.appendChild(el);
+	}
+	el.textContent = message;
+	el.classList.toggle("error", kind === "error");
+	if (toastTimer !== undefined) clearTimeout(toastTimer);
+	toastTimer = window.setTimeout(() => el.remove(), 3000);
 }

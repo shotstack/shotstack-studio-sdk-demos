@@ -59,3 +59,23 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 	line-height: 1.5;
 }
+
+.toast {
+	position: fixed;
+	bottom: 16px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: #2a2a2e;
+	color: #e0e0e0;
+	padding: 8px 16px;
+	border-radius: 4px;
+	font-size: 12px;
+	border: 1px solid #3a3a3e;
+	z-index: 1000;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+	max-width: 80vw;
+}
+
+.toast.error {
+	border-color: #cc3344;
+}
