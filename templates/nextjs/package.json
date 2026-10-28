@@ -9,7 +9,7 @@
 	},
 	"dependencies": {
 		"@shotstack/shotstack-studio": "2.29.5",
-		"next": "^16.2.7",
+		"next": "^16.4.3",
 		"react": "^19.2.7",
 		"react-dom": "^19.2.7"
 	},
