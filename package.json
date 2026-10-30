@@ -1,6 +1,6 @@
 {
   "name": "create-video-editor",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Scaffold a Shotstack Studio SDK video editor in seconds.",
   "type": "module",
   "scripts": {
