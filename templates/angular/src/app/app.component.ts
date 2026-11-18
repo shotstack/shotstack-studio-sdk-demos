@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnDestroy, ChangeDetectionStrategy } from "@angular/core";
+import { Component, AfterViewInit, OnDestroy } from "@angular/core";
 import { Edit, Canvas, Controls, Timeline, UIController, type EditConfig } from "@shotstack/shotstack-studio";
 import template from "../template.json";
 
@@ -21,7 +21,6 @@ import template from "../template.json";
 		</div>
 		<div data-shotstack-timeline class="c-shotstack-timeline"></div>
 	`,
-	changeDetection: ChangeDetectionStrategy.Eager,
 	styles: [
 		`
 			:host {
